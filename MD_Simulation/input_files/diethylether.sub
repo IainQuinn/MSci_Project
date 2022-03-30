@@ -1,0 +1,52 @@
+#!/bin/bash
+# Propagate environment variables to the compute node
+#SBATCH --export=ALL
+# Run in the standard partition (queue)
+#SBATCH --partition=standard
+# Specify project account
+#SBATCH --account=palmer-admet
+# Serial job -  a single core required
+#SBATCH --ntasks=12
+# Runtime (hard) 
+#SBATCH --time=72:00:00 
+# Job name 
+#SBATCH --job-name="test"
+# Output file
+#SBATCH --output=slurm-%j.out
+ 
+#module load gromacs/intel-2018.2/2019.3-single
+#source activate acpype
+
+#========================================================= 
+# Prologue script to record job details 
+#========================================================= 
+/opt/software/scripts/job_prologue.sh
+#---------------------------------------------------------- 
+
+### GROMACS SIMULATION ###
+
+#gmx_mpi insert-molecules -box 5 5 5 -ci diethylether.pdb -nmol 724 -o solvated.gro
+
+gmx_mpi grompp -f em.mdp -c solvated.gro -p topol.top -o em.tpr
+gmx_mpi mdrun -deffnm em
+gmx_mpi grompp -f equil_nvt.mdp -c em.gro -p topol.top -o equil_nvt.tpr
+gmx_mpi mdrun -deffnm equil_nvt
+gmx_mpi grompp -f equil_npt.mdp -c equil_nvt.gro -p topol.top -t equil_nvt.cpt -o equil_npt.tpr
+gmx_mpi mdrun -deffnm equil_npt
+gmx_mpi grompp -f run.mdp -c equil_npt.gro -p topol.top -t equil_npt.cpt -o run.tpr
+gmx_mpi mdrun -deffnm run 
+
+#gmx_mpi make_ndx -f run.gro #edit first molecule to unique identifier
+
+#gmx_mpi rdf -f run.trr -s run.tpr -selrpos whole_mol_com -seltype whole_mol_com -n index.ndx
+
+#########################
+
+
+
+#========================================================= 
+# Epilogue script to record job endtime and runtime 
+#========================================================= 
+/opt/software/scripts/job_epilogue.sh
+#----------------------------------------------------------
+
