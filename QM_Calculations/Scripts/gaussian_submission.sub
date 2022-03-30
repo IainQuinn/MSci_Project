@@ -1,0 +1,34 @@
+#!/bin/bash
+# Propagate environment variables to the compute node
+#SBATCH --export=ALL
+# Run in the standard partition (queue)
+#SBATCH --partition=teaching
+# Specify project account
+#SBATCH --account=teaching
+# Serial job -  a single core required
+#SBATCH --ntasks=8 --nodes=1
+# Runtime (hard) 
+#SBATCH --time=12:00:00 
+# Job name 
+#SBATCH --job-name="test"
+# Output file
+#SBATCH --output=slurm-%j.out
+ 
+module load gaussian
+
+#========================================================= 
+# Prologue script to record job details 
+#========================================================= 
+/opt/software/scripts/job_prologue.sh
+#---------------------------------------------------------- 
+
+g16 generic.com
+
+
+
+#========================================================= 
+# Epilogue script to record job endtime and runtime 
+#========================================================= 
+/opt/software/scripts/job_epilogue.sh
+#----------------------------------------------------------
+
